@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Ledgenta/fincra-go"
+	"github.com/1Btln/fincra-go"
 )
 
 func ExampleNew() {

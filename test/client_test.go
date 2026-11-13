@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	fincra "github.com/Ledgenta/fincra-go"
+	fincra "github.com/1Btln/fincra-go"
 )
 
 func newTestClient(t *testing.T, baseURL string, opts ...fincra.Option) *fincra.Client {

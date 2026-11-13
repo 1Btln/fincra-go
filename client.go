@@ -16,12 +16,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Ledgenta/fincra-go/account"
-	"github.com/Ledgenta/fincra-go/balances"
-	"github.com/Ledgenta/fincra-go/beneficiaries"
-	"github.com/Ledgenta/fincra-go/collections"
-	"github.com/Ledgenta/fincra-go/internal/api"
-	"github.com/Ledgenta/fincra-go/payouts"
+	"github.com/1Btln/fincra-go/account"
+	"github.com/1Btln/fincra-go/balances"
+	"github.com/1Btln/fincra-go/beneficiaries"
+	"github.com/1Btln/fincra-go/collections"
+	"github.com/1Btln/fincra-go/internal/api"
+	"github.com/1Btln/fincra-go/payouts"
 )
 
 const (

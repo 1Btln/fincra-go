@@ -9,7 +9,7 @@ An idiomatic Go SDK for the [Fincra](https://docs.fincra.com) payments API.
 ## Install
 
 ```sh
-go get github.com/Ledgenta/fincra-go
+go get github.com/1Btln/fincra-go
 ```
 
 Requires Go 1.24 or newer. The SDK has no third-party dependencies.
@@ -25,7 +25,7 @@ import (
 	"log"
 	"os"
 
-	fincra "github.com/Ledgenta/fincra-go"
+	fincra "github.com/1Btln/fincra-go"
 )
 
 func main() {

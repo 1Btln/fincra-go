@@ -3,7 +3,7 @@ package fincra_test
 import (
 	"testing"
 
-	fincra "github.com/Ledgenta/fincra-go"
+	fincra "github.com/1Btln/fincra-go"
 )
 
 const (

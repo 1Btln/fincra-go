@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	fincra "github.com/Ledgenta/fincra-go"
+	fincra "github.com/1Btln/fincra-go"
 )
 
 func TestDefaultConfig(t *testing.T) {

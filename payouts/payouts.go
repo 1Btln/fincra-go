@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/Ledgenta/fincra-go/internal/api"
+	"github.com/1Btln/fincra-go/internal/api"
 )
 
 // Backend is the subset of the Fincra client this package needs.

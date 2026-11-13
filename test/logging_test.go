@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	fincra "github.com/Ledgenta/fincra-go"
+	fincra "github.com/1Btln/fincra-go"
 )
 
 func newLoggingClient(t *testing.T, baseURL string, opts ...fincra.Option) (*fincra.Client, *bytes.Buffer) {

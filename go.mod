@@ -1,3 +1,3 @@
-module github.com/Ledgenta/fincra-go
+module github.com/1Btln/fincra-go
 
 go 1.24

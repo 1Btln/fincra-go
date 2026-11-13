@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Ledgenta/fincra-go/internal/api"
+	"github.com/1Btln/fincra-go/internal/api"
 )
 
 const defaultStatementPerPage = 20

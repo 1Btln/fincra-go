@@ -14,7 +14,7 @@ Security fixes are applied to the latest release. Until the project reaches
 Please do not open a public issue for a security problem.
 
 Report it privately through GitHub Security Advisories for
-[`Ledgenta/fincra-go`](https://github.com/Ledgenta/fincra-go/security/advisories/new),
+[`1Btln/fincra-go`](https://github.com/1Btln/fincra-go/security/advisories/new),
 or contact the maintainers through the repository's private channels.
 
 Include:

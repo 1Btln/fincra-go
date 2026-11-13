@@ -9,7 +9,7 @@ on correctness, security, and API stability.
 You need Go 1.24 or newer.
 
 ```sh
-git clone https://github.com/Ledgenta/fincra-go.git
+git clone https://github.com/1Btln/fincra-go.git
 cd fincra-go
 make check
 ```
