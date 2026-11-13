@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	fincra "github.com/1Btln/fincra-go"
+	"github.com/1Btln/fincra-go/balances"
 )
 
 const walletsJSON = `{
@@ -211,7 +212,7 @@ func TestGetBalanceHistory(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(t, srv.URL)
-	resp, err := client.Balances.GetBalanceHistory(context.Background(), &fincra.BalanceHistoryParams{
+	resp, err := client.Balances.GetBalanceHistory(context.Background(), &balances.BalanceHistoryParams{
 		Action:   "DEBIT",
 		DateFrom: "2024-01-01",
 		DateTo:   "2024-10-10",
@@ -237,10 +238,10 @@ func TestGetBalanceHistory(t *testing.T) {
 func TestGetBalanceHistoryValidation(t *testing.T) {
 	client := newTestClient(t, "https://example.test")
 
-	if _, err := client.Balances.GetBalanceHistory(context.Background(), &fincra.BalanceHistoryParams{Action: "sideways"}); !errors.Is(err, fincra.ErrInvalidParameter) {
+	if _, err := client.Balances.GetBalanceHistory(context.Background(), &balances.BalanceHistoryParams{Action: "sideways"}); !errors.Is(err, fincra.ErrInvalidParameter) {
 		t.Errorf("invalid action error = %v, want fincra.ErrInvalidParameter", err)
 	}
-	if _, err := client.Balances.GetBalanceHistory(context.Background(), &fincra.BalanceHistoryParams{DateFrom: "01/01/2024"}); !errors.Is(err, fincra.ErrInvalidParameter) {
+	if _, err := client.Balances.GetBalanceHistory(context.Background(), &balances.BalanceHistoryParams{DateFrom: "01/01/2024"}); !errors.Is(err, fincra.ErrInvalidParameter) {
 		t.Errorf("invalid date error = %v, want fincra.ErrInvalidParameter", err)
 	}
 }
@@ -334,14 +335,16 @@ func TestGetAccountStatement(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(t, srv.URL)
-	resp, err := client.Balances.GetAccountStatement(context.Background(), &fincra.AccountStatementParams{
-		BusinessID: "biz_override",
-		DateFrom:   "2024-01-01",
-		DateTo:     "2024-10-10",
-		Currency:   "kes",
-		PerPage:    5,
-		Page:       2,
-	})
+	resp, err := client.Balances.GetAccountStatement(
+		context.Background(),
+		&balances.AccountStatementParams{
+			BusinessID: "biz_override",
+			DateFrom:   "2024-01-01",
+			DateTo:     "2024-10-10",
+			Currency:   "kes",
+			PerPage:    5,
+			Page:       2,
+		})
 	if err != nil {
 		t.Fatalf("GetAccountStatement: %v", err)
 	}
@@ -373,11 +376,13 @@ func TestGetAccountStatementDefaultsPerPage(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(t, srv.URL)
-	if _, err := client.Balances.GetAccountStatement(context.Background(), &fincra.AccountStatementParams{
-		DateFrom: "2024-01-01",
-		DateTo:   "2024-01-31",
-		Currency: "NGN",
-	}); err != nil {
+	if _, err := client.Balances.GetAccountStatement(
+		context.Background(),
+		&balances.AccountStatementParams{
+			DateFrom: "2024-01-01",
+			DateTo:   "2024-01-31",
+			Currency: "NGN",
+		}); err != nil {
 		t.Fatalf("GetAccountStatement: %v", err)
 	}
 }
@@ -387,12 +392,12 @@ func TestGetAccountStatementValidation(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		params *fincra.AccountStatementParams
+		params *balances.AccountStatementParams
 	}{
 		{name: "nil params", params: nil},
-		{name: "missing dates", params: &fincra.AccountStatementParams{Currency: "NGN"}},
-		{name: "missing currency", params: &fincra.AccountStatementParams{DateFrom: "2024-01-01", DateTo: "2024-01-31"}},
-		{name: "bad date", params: &fincra.AccountStatementParams{DateFrom: "01/01/2024", DateTo: "2024-01-31", Currency: "NGN"}},
+		{name: "missing dates", params: &balances.AccountStatementParams{Currency: "NGN"}},
+		{name: "missing currency", params: &balances.AccountStatementParams{DateFrom: "2024-01-01", DateTo: "2024-01-31"}},
+		{name: "bad date", params: &balances.AccountStatementParams{DateFrom: "01/01/2024", DateTo: "2024-01-31", Currency: "NGN"}},
 	}
 
 	for _, tt := range tests {

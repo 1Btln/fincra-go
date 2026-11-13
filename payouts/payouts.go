@@ -14,7 +14,7 @@ import (
 
 // Backend is the subset of the Fincra client this package needs.
 type Backend interface {
-	Do(ctx context.Context, method, path string, body, out any, opts ...func(*http.Request)) error
+	api.HTTPClient
 	BusinessID() string
 }
 
@@ -61,7 +61,7 @@ func (s *Service) ListPayouts(ctx context.Context, params *PayoutListParams) (*P
 	api.SetString(query, "dateTo", params.DateTo)
 
 	var out PayoutListResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/disbursements/payouts?"+query.Encode(), nil, &out); err != nil {
+	if err := s.backend.Get(ctx, "/disbursements/payouts?"+query.Encode(), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -104,7 +104,7 @@ func (s *Service) CreatePayout(ctx context.Context, req *PayoutRequest) (*Create
 	payload.DestinationCurrency = destination
 
 	var out CreatePayoutResponse
-	if err := s.backend.Do(ctx, http.MethodPost, "/disbursements/payouts", &payload, &out); err != nil {
+	if err := s.backend.Post(ctx, "/disbursements/payouts", &payload, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -119,7 +119,7 @@ func (s *Service) GetPayoutByReference(ctx context.Context, transactionReference
 
 	var out PayoutResponse
 	path := "/disbursements/payouts/reference/" + url.PathEscape(transactionReference)
-	if err := s.backend.Do(ctx, http.MethodGet, path, nil, &out); err != nil {
+	if err := s.backend.Get(ctx, path, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -134,7 +134,7 @@ func (s *Service) GetPayoutByCustomerReference(ctx context.Context, customerRefe
 
 	var out PayoutResponse
 	path := "/disbursements/payouts/customer-reference/" + url.PathEscape(customerReference)
-	if err := s.backend.Do(ctx, http.MethodGet, path, nil, &out); err != nil {
+	if err := s.backend.Get(ctx, path, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -186,7 +186,7 @@ func (s *Service) UploadDocument(ctx context.Context, req *DocumentUploadRequest
 
 	contentType := writer.FormDataContentType()
 	var out DocumentUploadResponse
-	err = s.backend.Do(ctx, http.MethodPost, "/disbursements/payouts/documents-upload", &body, &out,
+	err = s.backend.Post(ctx, "/disbursements/payouts/documents-upload", &body, &out,
 		func(r *http.Request) { r.Header.Set("Content-Type", contentType) })
 	if err != nil {
 		return nil, err
@@ -220,7 +220,7 @@ func (s *Service) TransferToFincraAccount(ctx context.Context, req *WalletTransf
 	payload.Business = businessID
 
 	var out WalletTransferResponse
-	if err := s.backend.Do(ctx, http.MethodPost, "/disbursements/payouts/wallets", &payload, &out); err != nil {
+	if err := s.backend.Post(ctx, "/disbursements/payouts/wallets", &payload, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil

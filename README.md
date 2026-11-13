@@ -288,6 +288,9 @@ var out struct {
 err := client.Do(ctx, http.MethodGet, "/wallets?businessID="+url.QueryEscape(id), nil, &out)
 ```
 
+Resource services use an internal verb-oriented HTTP client backed by the same
+request pipeline. Use `Client.Do` for requests that do not have a service method.
+
 Per-request headers, such as a sub-account override, can be supplied with
 `fincra.WithRequestHeader`.
 
@@ -299,19 +302,26 @@ to an unexpected host.
 
 ```
 .
-├── client.go        HTTP engine: auth headers, retries, response decoding
-├── config.go        Config, defaults, env fallback, validation, redaction
-├── options.go       Functional options for New / NewWithConfig
-├── environment.go   Sandbox/live environments and base URLs
-├── errors.go        APIError and parameter validation errors
-├── logging.go       slog integration, depth, masking, truncation
-├── balances.go      Balances service (wallets, history, statements)
-├── webhook.go       HMAC-SHA512 webhook signing and verification
-├── version.go       SDK version
-├── doc.go           Package documentation
-├── example_test.go  Runnable examples rendered by pkg.go.dev
-├── test/            External (fincra_test) unit and httptest contract tests
-└── .github/         CI workflow
+├── client.go          Public client and shared HTTP engine
+├── config.go          Public configuration and environment fallback
+├── options.go         Public functional options
+├── environment.go     Public sandbox/live environment values
+├── errors.go          Public API and validation error types
+├── logging.go         Public slog settings and private logging helpers
+├── account/           Business, banks, account resolution, BVN
+├── balances/          Wallets, history, statements, top-ups
+├── beneficiaries/     Saved-recipient management
+├── checkout/          Hosted checkout and fee calculation
+├── collections/       Deposits, refunds, chargebacks
+├── conversions/       FX rates, quotes, wallet conversion
+├── directcharge/      Card, bank-transfer, mobile-money, EFT charges
+├── mandates/          Direct-debit mandates
+├── payouts/           Disbursements and transfers
+├── virtualaccounts/   Permanent and temporary virtual accounts
+├── internal/api/      Shared validation and request helpers
+├── internal/httpclient/ Verb adapter used by resource services
+├── test/              External (fincra_test) tests
+└── .github/           CI workflow
 ```
 
 New resources should follow the same shape: a `XxxService` field on `Client`,
@@ -323,12 +333,12 @@ call to `Client.Do`.
 - [x] Client core, configuration, retries, errors, webhooks
 - [x] Balances
 - [x] Structured `slog` logging with configurable depth and masking
-- [ ] Business information and rates
-- [ ] Quotes and conversions
-- [ ] Checkout and direct charges
-- [ ] Virtual accounts and deposits
-- [ ] Payouts, beneficiaries, and transfers
-- [ ] Refunds, chargebacks, and mandates
+- [x] Business information and rates
+- [x] Quotes and conversions
+- [x] Checkout and direct charges
+- [x] Virtual accounts and deposits
+- [x] Payouts, beneficiaries, and transfers
+- [x] Refunds, chargebacks, and mandates
 - [ ] Webhook event types and payload structs
 
 ## Development
@@ -339,10 +349,9 @@ make test-race  # race detector
 make cover      # coverage report
 ```
 
-Tests live in `test/` as the external `fincra_test` package. Runnable examples
-stay at the repository root so `go doc` and pkg.go.dev render them. Please add an
-`httptest` contract test for every endpoint, covering the request path, query
-parameters, headers, success decoding, and API error mapping.
+All tests and runnable examples live in `test/` as the external `fincra_test`
+package. Please add an `httptest` contract test for every endpoint, covering the
+request path, query parameters, headers, success decoding, and API error mapping.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow and
 [SECURITY.md](SECURITY.md) for reporting vulnerabilities.

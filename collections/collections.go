@@ -2,7 +2,6 @@ package collections
 
 import (
 	"context"
-	"net/http"
 	"net/url"
 	"strings"
 
@@ -11,7 +10,7 @@ import (
 
 // Backend is the subset of the Fincra client this package needs.
 type Backend interface {
-	Do(ctx context.Context, method, path string, body, out any, opts ...func(*http.Request)) error
+	api.HTTPClient
 	BusinessID() string
 }
 
@@ -45,7 +44,7 @@ func (s *Service) ListDeposits(ctx context.Context, params *DepositParams) (*Dep
 		"virtualAccount": {virtualAccount},
 	}
 	var out DepositListResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/collections?"+query.Encode(), nil, &out); err != nil {
+	if err := s.backend.Get(ctx, "/collections?"+query.Encode(), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -60,7 +59,7 @@ func (s *Service) ListChargebacks(ctx context.Context, businessID string) (*Char
 	query := url.Values{"business": {id}}
 
 	var out ChargebackListResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/collections/chargebacks?"+query.Encode(), nil, &out); err != nil {
+	if err := s.backend.Get(ctx, "/collections/chargebacks?"+query.Encode(), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -76,7 +75,7 @@ func (s *Service) AcceptChargeback(ctx context.Context, chargebackID, businessID
 
 	var out ActionResponse
 	path := "/collections/chargebacks/" + url.PathEscape(id.chargeback) + "/accept?" + query.Encode()
-	if err := s.backend.Do(ctx, http.MethodPatch, path, nil, &out); err != nil {
+	if err := s.backend.Patch(ctx, path, nil, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -96,7 +95,7 @@ func (s *Service) RejectChargeback(ctx context.Context, chargebackID, businessID
 
 	var out ActionResponse
 	path := "/collections/chargebacks/" + url.PathEscape(id.chargeback) + "/reject?" + query.Encode()
-	if err := s.backend.Do(ctx, http.MethodPatch, path, &payload, &out); err != nil {
+	if err := s.backend.Patch(ctx, path, &payload, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -128,7 +127,7 @@ func (s *Service) VerifyDeposit(ctx context.Context, merchantReference string) (
 
 	var out DepositResponse
 	path := "/collections/merchant-reference/" + url.PathEscape(merchantReference)
-	if err := s.backend.Do(ctx, http.MethodGet, path, nil, &out); err != nil {
+	if err := s.backend.Get(ctx, path, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -143,7 +142,7 @@ func (s *Service) InitiateRefund(ctx context.Context, transReference string) (*R
 	payload := InitiateRefundRequest{TransReference: transReference}
 
 	var out RefundResponse
-	if err := s.backend.Do(ctx, http.MethodPost, "/collections/refund", &payload, &out); err != nil {
+	if err := s.backend.Post(ctx, "/collections/refund", &payload, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -157,7 +156,7 @@ func (s *Service) GetRefund(ctx context.Context, reference string) (*RefundRespo
 	}
 
 	var out RefundResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/collections/refund/"+url.PathEscape(reference), nil, &out); err != nil {
+	if err := s.backend.Get(ctx, "/collections/refund/"+url.PathEscape(reference), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -172,7 +171,7 @@ func (s *Service) ListRefunds(ctx context.Context, businessID string) (*RefundLi
 	query := url.Values{"business": {id}}
 
 	var out RefundListResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/collections/refund?"+query.Encode(), nil, &out); err != nil {
+	if err := s.backend.Get(ctx, "/collections/refund?"+query.Encode(), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil

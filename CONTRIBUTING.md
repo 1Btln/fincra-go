@@ -32,8 +32,7 @@ public API honest: tests can only use what a third-party caller can use.
 - Put endpoint contract tests in `test/`. Use `httptest` and assert the request
   path, query parameters, headers, success decoding, and `*fincra.APIError`
   mapping.
-- Keep runnable examples in `example_test.go` at the repository root. Go only
-  renders examples from the package directory.
+- Keep runnable examples in `test/` alongside the other tests.
 - Clear `FINCRA_*` variables with `t.Setenv` when a test could read them
   implicitly.
 

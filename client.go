@@ -19,9 +19,15 @@ import (
 	"github.com/1Btln/fincra-go/account"
 	"github.com/1Btln/fincra-go/balances"
 	"github.com/1Btln/fincra-go/beneficiaries"
+	"github.com/1Btln/fincra-go/checkout"
 	"github.com/1Btln/fincra-go/collections"
+	"github.com/1Btln/fincra-go/conversions"
+	"github.com/1Btln/fincra-go/directcharge"
 	"github.com/1Btln/fincra-go/internal/api"
+	"github.com/1Btln/fincra-go/internal/httpclient"
+	"github.com/1Btln/fincra-go/mandates"
 	"github.com/1Btln/fincra-go/payouts"
+	"github.com/1Btln/fincra-go/virtualaccounts"
 )
 
 const (
@@ -37,7 +43,8 @@ const (
 // goroutines once constructed.
 type Client struct {
 	cfg        Config
-	httpClient *http.Client
+	transport  *http.Client
+	httpClient *httpclient.Client
 
 	maskHeaders     map[string]struct{}
 	maskJSONFields  map[string]struct{}
@@ -120,29 +127,30 @@ func NewWithConfig(cfg *Config, opts ...Option) (*Client, error) {
 
 	// Copy the caller's http.Client so the SDK can add a redirect guard without
 	// mutating the value they own. The underlying Transport and Jar are shared.
-	httpClient := *resolved.HTTPClient
-	if httpClient.CheckRedirect == nil {
-		httpClient.CheckRedirect = sameHostRedirectPolicy
+	transport := *resolved.HTTPClient
+	if transport.CheckRedirect == nil {
+		transport.CheckRedirect = sameHostRedirectPolicy
 	}
-	resolved.HTTPClient = &httpClient
+	resolved.HTTPClient = &transport
 
 	client := &Client{
 		cfg:             *resolved,
-		httpClient:      &httpClient,
+		transport:       &transport,
 		maskHeaders:     newStringSet(resolved.Log.MaskHeaders),
 		maskJSONFields:  newStringSet(resolved.Log.MaskJSONFields),
 		maskQueryParams: newStringSet(resolved.Log.MaskQueryParams),
 	}
-	client.Account = account.New(client)
-	client.Balances = balances.New(client)
-	client.Beneficiaries = beneficiaries.New(client)
-	client.Checkout = checkout.New(client)
-	client.Collections = collections.New(client)
-	client.Conversions = conversions.New(client)
-	client.DirectCharge = directcharge.New(client)
-	client.Mandates = mandates.New(client)
-	client.Payouts = payouts.New(client)
-	client.VirtualAccounts = virtualaccounts.New(client)
+	client.httpClient = httpclient.New(client.Do, client.BusinessID())
+	client.Account = account.New(client.httpClient)
+	client.Balances = balances.New(client.httpClient)
+	client.Beneficiaries = beneficiaries.New(client.httpClient)
+	client.Checkout = checkout.New(client.httpClient)
+	client.Collections = collections.New(client.httpClient)
+	client.Conversions = conversions.New(client.httpClient)
+	client.DirectCharge = directcharge.New(client.httpClient)
+	client.Mandates = mandates.New(client.httpClient)
+	client.Payouts = payouts.New(client.httpClient)
+	client.VirtualAccounts = virtualaccounts.New(client.httpClient)
 	return client, nil
 }
 
@@ -241,6 +249,7 @@ func (c *Client) Do(ctx context.Context, method, path string, body, out any, opt
 		retryAfter  time.Duration
 		retryReason string
 	)
+
 	for attempt := 0; attempt <= c.cfg.MaxRetries; attempt++ {
 		if attempt > 0 {
 			delay := c.retryDelay(attempt, retryAfter)
@@ -258,7 +267,7 @@ func (c *Client) Do(ctx context.Context, method, path string, body, out any, opt
 		}
 
 		started := time.Now()
-		resp, err := c.httpClient.Do(req)
+		resp, err := c.transport.Do(req)
 		duration := time.Since(started)
 		if err != nil {
 			c.logTransportError(ctx, req, err, duration, attempt)

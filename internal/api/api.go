@@ -6,14 +6,26 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
 )
+
+// HTTPClient is the verb-based transport interface resource services use.
+// The root SDK Client implements it and keeps Do as its low-level escape hatch.
+type HTTPClient interface {
+	Get(ctx context.Context, path string, out any, opts ...func(*http.Request)) error
+	Post(ctx context.Context, path string, body, out any, opts ...func(*http.Request)) error
+	Put(ctx context.Context, path string, body, out any, opts ...func(*http.Request)) error
+	Patch(ctx context.Context, path string, body, out any, opts ...func(*http.Request)) error
+	Delete(ctx context.Context, path string, out any, opts ...func(*http.Request)) error
+}
 
 // Header names used by Fincra.
 const (
@@ -93,11 +105,11 @@ func ValidateCurrency(field, value string, allowed ...string) error {
 	if value == "" {
 		return Missing(field)
 	}
-	for _, candidate := range allowed {
-		if value == candidate {
-			return nil
-		}
+
+	if slices.Contains(allowed, value) {
+		return nil
 	}
+
 	return Invalid(field, "is not a supported currency")
 }
 

@@ -15,7 +15,7 @@ const defaultStatementPerPage = 20
 // Backend is the subset of the Fincra client this package needs. The root
 // client satisfies it without an import cycle.
 type Backend interface {
-	Do(ctx context.Context, method, path string, body, out any, opts ...func(*http.Request)) error
+	api.HTTPClient
 	BusinessID() string
 }
 
@@ -40,7 +40,7 @@ func (s *Service) ListWallets(ctx context.Context, businessID string) (*ListWall
 
 	query := url.Values{"businessID": {id}}
 	var out ListWalletsResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/wallets?"+query.Encode(), nil, &out); err != nil {
+	if err := s.backend.Get(ctx, "/wallets?"+query.Encode(), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -55,7 +55,7 @@ func (s *Service) GetWallet(ctx context.Context, walletID string) (*WalletRespon
 	}
 
 	var out WalletResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/wallets/"+url.PathEscape(walletID), nil, &out); err != nil {
+	if err := s.backend.Get(ctx, "/wallets/"+url.PathEscape(walletID), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -100,7 +100,7 @@ func (s *Service) GetBalanceHistory(ctx context.Context, params *BalanceHistoryP
 	api.SetString(query, "amount", params.Amount)
 
 	var out BalanceHistoryResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/wallets/logs?"+query.Encode(), nil, &out); err != nil {
+	if err := s.backend.Get(ctx, "/wallets/logs?"+query.Encode(), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -151,7 +151,7 @@ func (s *Service) GetAccountStatement(ctx context.Context, params *AccountStatem
 	}
 
 	var out AccountStatementResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/wallets/logs/statement?"+query.Encode(), nil, &out, opts...); err != nil {
+	if err := s.backend.Get(ctx, "/wallets/logs/statement?"+query.Encode(), &out, opts...); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -174,7 +174,7 @@ func (s *Service) GetTopupHistory(ctx context.Context, params *TopupHistoryParam
 	api.SetInt(query, "perPage", params.PerPage)
 
 	var out TopupHistoryResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/wallets/topups?"+query.Encode(), nil, &out); err != nil {
+	if err := s.backend.Get(ctx, "/wallets/topups?"+query.Encode(), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil

@@ -149,6 +149,12 @@ func DefaultMaskedJSONFields() []string {
 		"nin",
 		"accountnumber",
 		"bankaccountnumber",
+		"cardnumber",
+		"card_number",
+		"cardno",
+		"pan",
+		"primaryaccountnumber",
+		"number",
 	}
 }
 

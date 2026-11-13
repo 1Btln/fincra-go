@@ -24,20 +24,20 @@ type Bank struct {
 
 // Beneficiary is a saved recipient.
 type Beneficiary struct {
-	ID                 string   `json:"_id"`
-	Business           string   `json:"business"`
-	FirstName          string   `json:"firstName"`
-	LastName           string   `json:"lastName"`
-	Email              string   `json:"email"`
-	PhoneNumber        string   `json:"phoneNumber"`
-	AccountHolderName  string   `json:"accountHolderName"`
-	Bank               Bank     `json:"bank"`
-	Address            *Address `json:"address"`
-	Type               string   `json:"type"`
-	Currency           string   `json:"currency"`
-	PaymentDestination string   `json:"paymentDestination"`
-	DestinationAddress string   `json:"destinationAddress"`
-	UniqueIdentifier   string   `json:"uniqueIdentifier"`
+	ID                 string    `json:"_id"`
+	Business           string    `json:"business"`
+	FirstName          string    `json:"firstName"`
+	LastName           string    `json:"lastName"`
+	Email              string    `json:"email"`
+	PhoneNumber        string    `json:"phoneNumber"`
+	AccountHolderName  string    `json:"accountHolderName"`
+	Bank               Bank      `json:"bank"`
+	Address            *Address  `json:"address"`
+	Type               string    `json:"type"`
+	Currency           string    `json:"currency"`
+	PaymentDestination string    `json:"paymentDestination"`
+	DestinationAddress string    `json:"destinationAddress"`
+	UniqueIdentifier   string    `json:"uniqueIdentifier"`
 	CreatedAt          time.Time `json:"createdAt"`
 	UpdatedAt          time.Time `json:"updatedAt"`
 }
@@ -64,8 +64,9 @@ type UpdateBeneficiaryRequest = CreateBeneficiaryRequest
 
 // ListParams paginate Service.List.
 type ListParams struct {
-	Page    int
-	PerPage int
+	BusinessID string
+	Page       int
+	PerPage    int
 }
 
 // BeneficiaryData is the data payload of BeneficiaryListResponse.

@@ -2,7 +2,6 @@ package account
 
 import (
 	"context"
-	"net/http"
 	"net/url"
 	"strings"
 
@@ -11,7 +10,7 @@ import (
 
 // Backend is the subset of the Fincra client this package needs.
 type Backend interface {
-	Do(ctx context.Context, method, path string, body, out any, opts ...func(*http.Request)) error
+	api.HTTPClient
 	BusinessID() string
 }
 
@@ -29,7 +28,7 @@ func New(backend Backend) *Service {
 // GetBusiness returns the business profile attached to the API key.
 func (s *Service) GetBusiness(ctx context.Context) (*BusinessResponse, error) {
 	var out BusinessResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/profile/business/me", nil, &out); err != nil {
+	if err := s.backend.Get(ctx, "/profile/business/me", &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -38,7 +37,7 @@ func (s *Service) GetBusiness(ctx context.Context) (*BusinessResponse, error) {
 // GetMerchant returns the merchant profile attached to the API key.
 func (s *Service) GetMerchant(ctx context.Context) (*MerchantResponse, error) {
 	var out MerchantResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/profile/merchants/me", nil, &out); err != nil {
+	if err := s.backend.Get(ctx, "/profile/merchants/me", &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -62,7 +61,7 @@ func (s *Service) ListBanks(ctx context.Context, params *BankParams) (*BanksResp
 	api.SetString(query, "paymentDestination", params.PaymentDestination)
 
 	var out BanksResponse
-	if err := s.backend.Do(ctx, http.MethodGet, "/core/banks?"+query.Encode(), nil, &out); err != nil {
+	if err := s.backend.Get(ctx, "/core/banks?"+query.Encode(), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -81,7 +80,7 @@ func (s *Service) ResolveAccount(ctx context.Context, req *ResolveAccountRequest
 	}
 
 	var out ResolveAccountResponse
-	if err := s.backend.Do(ctx, http.MethodPost, "/core/accounts/resolve", req, &out); err != nil {
+	if err := s.backend.Post(ctx, "/core/accounts/resolve", req, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -105,7 +104,7 @@ func (s *Service) VerifyBVN(ctx context.Context, req *BVNVerificationRequest) (*
 	payload.Business = businessID
 
 	var out BVNVerificationResponse
-	if err := s.backend.Do(ctx, http.MethodPost, "/core/bvn-verification", &payload, &out); err != nil {
+	if err := s.backend.Post(ctx, "/core/bvn-verification", &payload, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
