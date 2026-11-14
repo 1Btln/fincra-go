@@ -12,21 +12,21 @@ type DepositParams struct {
 
 // Deposit is a successful pay-in.
 type Deposit struct {
-	ID                 int64     `json:"id"`
-	ObjectID           string    `json:"_id"`
-	Reference          string    `json:"reference"`
-	MerchantReference  string    `json:"merchantReference"`
-	VirtualAccount     string    `json:"virtualAccount"`
-	VirtualAccountID   string    `json:"virtualAccountId"`
-	Amount             float64   `json:"amount"`
-	Currency           string    `json:"currency"`
-	Status             string    `json:"status"`
-	PaymentMethod      string    `json:"paymentMethod"`
-	CustomerName       string    `json:"customerName"`
-	CustomerEmail      string    `json:"customerEmail"`
-	Description        string    `json:"description"`
-	CreatedAt          time.Time `json:"createdAt"`
-	UpdatedAt          time.Time `json:"updatedAt"`
+	ID                int64     `json:"id"`
+	ObjectID          string    `json:"_id"`
+	Reference         string    `json:"reference"`
+	MerchantReference string    `json:"merchantReference"`
+	VirtualAccount    string    `json:"virtualAccount"`
+	VirtualAccountID  string    `json:"virtualAccountId"`
+	Amount            float64   `json:"amount"`
+	Currency          string    `json:"currency"`
+	Status            string    `json:"status"`
+	PaymentMethod     string    `json:"paymentMethod"`
+	CustomerName      string    `json:"customerName"`
+	CustomerEmail     string    `json:"customerEmail"`
+	Description       string    `json:"description"`
+	CreatedAt         time.Time `json:"createdAt"`
+	UpdatedAt         time.Time `json:"updatedAt"`
 }
 
 // DepositData is the data payload of DepositListResponse.
@@ -51,16 +51,16 @@ type DepositResponse struct {
 
 // Chargeback is a disputed card collection.
 type Chargeback struct {
-	ID                int64     `json:"id"`
-	Reference         string    `json:"reference"`
-	CollectionReference string  `json:"collectionReference"`
-	Amount            float64   `json:"amount"`
-	Currency          string    `json:"currency"`
-	Status            string    `json:"status"`
-	Reason            string    `json:"reason"`
-	BusinessRejectReason string `json:"businessRejectReason"`
-	CreatedAt         time.Time `json:"createdAt"`
-	UpdatedAt         time.Time `json:"updatedAt"`
+	ID                   int64     `json:"id"`
+	Reference            string    `json:"reference"`
+	CollectionReference  string    `json:"collectionReference"`
+	Amount               float64   `json:"amount"`
+	Currency             string    `json:"currency"`
+	Status               string    `json:"status"`
+	Reason               string    `json:"reason"`
+	BusinessRejectReason string    `json:"businessRejectReason"`
+	CreatedAt            time.Time `json:"createdAt"`
+	UpdatedAt            time.Time `json:"updatedAt"`
 }
 
 // ChargebackData is the data payload of ChargebackListResponse.
@@ -105,25 +105,25 @@ type RefundPayee struct {
 
 // Refund is a collection refund.
 type Refund struct {
-	ID                          int64       `json:"id"`
-	CollectionReference         string      `json:"collectionReference"`
-	Reference                   string      `json:"reference"`
-	Currency                    string      `json:"currency"`
-	AmountRefunded              string      `json:"amountRefunded"`
-	RefundType                  string      `json:"refundType"`
-	PayeeAccountNumber          string      `json:"payeeAccountNumber"`
-	CollectionExpectedAmount    string      `json:"collectionExpectedAmount"`
-	CollectionAmountReceived    string      `json:"collectionAmountReceived"`
-	CollectionAmountSettled     string      `json:"collectionAmountSettled"`
-	CollectionSettlementReference string    `json:"collectionSettlementReference"`
-	CollectionMerchantReference string      `json:"collectionMerchantReference"`
-	CollectionVarianceType      string      `json:"collectionVarianceType"`
-	CollectionVirtualAccountID  string      `json:"collectionVirtualAccountId"`
-	Metadata                    map[string]any `json:"metadata"`
-	RefundStatus                string      `json:"refundStatus"`
-	CompletedAt                 string      `json:"completedAt"`
-	InitiatedAt                 string      `json:"initiatedAt"`
-	Payee                       RefundPayee `json:"payee"`
+	ID                            int64          `json:"id"`
+	CollectionReference           string         `json:"collectionReference"`
+	Reference                     string         `json:"reference"`
+	Currency                      string         `json:"currency"`
+	AmountRefunded                string         `json:"amountRefunded"`
+	RefundType                    string         `json:"refundType"`
+	PayeeAccountNumber            string         `json:"payeeAccountNumber"`
+	CollectionExpectedAmount      string         `json:"collectionExpectedAmount"`
+	CollectionAmountReceived      string         `json:"collectionAmountReceived"`
+	CollectionAmountSettled       string         `json:"collectionAmountSettled"`
+	CollectionSettlementReference string         `json:"collectionSettlementReference"`
+	CollectionMerchantReference   string         `json:"collectionMerchantReference"`
+	CollectionVarianceType        string         `json:"collectionVarianceType"`
+	CollectionVirtualAccountID    string         `json:"collectionVirtualAccountId"`
+	Metadata                      map[string]any `json:"metadata"`
+	RefundStatus                  string         `json:"refundStatus"`
+	CompletedAt                   string         `json:"completedAt"`
+	InitiatedAt                   string         `json:"initiatedAt"`
+	Payee                         RefundPayee    `json:"payee"`
 }
 
 // RefundResponse is returned by Service.InitiateRefund and Service.GetRefund.

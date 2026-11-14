@@ -6,17 +6,17 @@ import "time"
 
 // Settings are a business's payment settings.
 type Settings struct {
-	FeeBearer            string `json:"feeBearer"`
+	FeeBearer             string `json:"feeBearer"`
 	SettlementDestination string `json:"settlementDestination"`
-	EnableWebhook        bool   `json:"enableWebhook"`
-	CallbackURL          string `json:"callbackURL"`
+	EnableWebhook         bool   `json:"enableWebhook"`
+	CallbackURL           string `json:"callbackURL"`
 }
 
 // EmailSettings control business notification emails.
 type EmailSettings struct {
-	CollectionNotification   bool `json:"collectionNotification"`
-	TopupNotification        bool `json:"topupNotification"`
-	SettlementNotification   bool `json:"settlementNotification"`
+	CollectionNotification     bool `json:"collectionNotification"`
+	TopupNotification          bool `json:"topupNotification"`
+	SettlementNotification     bool `json:"settlementNotification"`
 	PaymentReceiptNotification bool `json:"paymentReceiptNotification"`
 }
 
@@ -156,7 +156,7 @@ type BVNVerificationRequest struct {
 
 // BVNData is the verification result.
 type BVNData struct {
-	VerificationStatus string    `json:"verificationStatus"`
+	VerificationStatus string      `json:"verificationStatus"`
 	Response           BVNIdentity `json:"response"`
 }
 
