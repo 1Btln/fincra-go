@@ -8,17 +8,17 @@ import (
 	"github.com/1Btln/fincra-go/internal/api"
 )
 
-// Backend is the subset of the Fincra client this package needs.
-type Backend interface {
+// backend is the subset of the Fincra client this package needs.
+type backend interface {
 	api.HTTPClient
 	BusinessID() string
 }
 
 // Service groups hosted-checkout and fee-calculation endpoints.
-type Service struct{ backend Backend }
+type Service struct{ backend backend }
 
 // New returns a checkout service backed by backend.
-func New(backend Backend) *Service { return &Service{backend: backend} }
+func New(backend backend) *Service { return &Service{backend: backend} }
 
 // Initiate creates a hosted checkout payment link.
 func (s *Service) Initiate(ctx context.Context, req *InitiateRequest) (*PaymentResponse, error) {

@@ -9,17 +9,17 @@ import (
 	"github.com/1Btln/fincra-go/internal/api"
 )
 
-// Backend is the subset of the Fincra client this package needs.
-type Backend interface {
+// backend is the subset of the Fincra client this package needs.
+type backend interface {
 	api.HTTPClient
 	BusinessID() string
 }
 
 // Service groups saved-recipient endpoints. Access it through Client.Beneficiaries.
-type Service struct{ backend Backend }
+type Service struct{ backend backend }
 
 // New returns a beneficiary service backed by backend.
-func New(backend Backend) *Service { return &Service{backend: backend} }
+func New(backend backend) *Service { return &Service{backend: backend} }
 
 func (s *Service) businessPath(override string) (string, error) {
 	id, err := api.BusinessID(override, s.backend.BusinessID())

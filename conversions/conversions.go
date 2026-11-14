@@ -8,17 +8,17 @@ import (
 	"github.com/1Btln/fincra-go/internal/api"
 )
 
-// Backend is the subset of the Fincra client this package needs.
-type Backend interface {
+// backend is the subset of the Fincra client this package needs.
+type backend interface {
 	api.HTTPClient
 	BusinessID() string
 }
 
 // Service groups FX quote, rates, and wallet conversion endpoints.
-type Service struct{ backend Backend }
+type Service struct{ backend backend }
 
 // New returns a conversions service backed by backend.
-func New(backend Backend) *Service { return &Service{backend: backend} }
+func New(backend backend) *Service { return &Service{backend: backend} }
 
 // GenerateQuote requests a short-lived FX quote. Fincra quotes expire quickly;
 // callers should initiate the associated transaction promptly.

@@ -9,17 +9,17 @@ import (
 	"github.com/1Btln/fincra-go/internal/api"
 )
 
-// Backend is the subset of the Fincra client this package needs.
-type Backend interface {
+// backend is the subset of the Fincra client this package needs.
+type backend interface {
 	api.HTTPClient
 	BusinessID() string
 }
 
 // Service groups direct-debit mandate endpoints.
-type Service struct{ backend Backend }
+type Service struct{ backend backend }
 
 // New returns a mandate service backed by backend.
-func New(backend Backend) *Service { return &Service{backend: backend} }
+func New(backend backend) *Service { return &Service{backend: backend} }
 
 // Create creates a direct-debit mandate.
 func (s *Service) Create(ctx context.Context, req *CreateRequest) (*MandateResponse, error) {
