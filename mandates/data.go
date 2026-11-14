@@ -43,6 +43,14 @@ type MandateResponse struct {
 	Data    Mandate `json:"data"`
 }
 
+// MandateListResponse is returned by Service.List.
+type MandateListResponse struct {
+	Results []Mandate `json:"results"`
+	Total   int       `json:"total"`
+	PerPage string    `json:"perPage"`
+	Page    int       `json:"page"`
+}
+
 // DebitRequest initiates a debit under an approved mandate.
 type DebitRequest struct {
 	Amount               string `json:"amount"`

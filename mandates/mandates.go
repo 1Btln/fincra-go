@@ -3,6 +3,7 @@ package mandates
 import (
 	"context"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/1Btln/fincra-go/internal/api"
@@ -62,6 +63,19 @@ func (s *Service) Get(ctx context.Context, reference string) (*MandateResponse, 
 	var out MandateResponse
 	path := "/mandate-mgt/mandates/reference/" + url.PathEscape(reference)
 	if err := s.backend.Get(ctx, path, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// List returns mandates for the configured business, limited to perPage results.
+func (s *Service) List(ctx context.Context, perPage int) (*MandateListResponse, error) {
+	if perPage <= 0 {
+		return nil, api.Invalid("perPage", "must be greater than zero")
+	}
+	query := url.Values{"perPage": {strconv.Itoa(perPage)}}
+	var out MandateListResponse
+	if err := s.backend.Get(ctx, "/v2/mandate-mgt/mandates/?"+query.Encode(), &out); err != nil {
 		return nil, err
 	}
 	return &out, nil

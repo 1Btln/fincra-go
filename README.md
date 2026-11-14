@@ -2,9 +2,8 @@
 
 An idiomatic Go SDK for the [Fincra](https://docs.fincra.com) payments API.
 
-> **Status:** early bootstrap. Configuration, the HTTP client core, webhook
-> signature verification, and the Balances service are implemented. Additional
-> resource services will follow the patterns established here.
+> **Status:** active development. The SDK provides a reusable Go client and
+> resource APIs; it does not orchestrate application-specific payment flows.
 
 ## Install
 
@@ -308,6 +307,8 @@ to an unexpected host.
 ├── environment.go     Public sandbox/live environment values
 ├── errors.go          Public API and validation error types
 ├── logging.go         Public slog settings and private logging helpers
+├── webhook.go         Webhook signing and signature verification
+├── webhook/           Event names, typed payloads, and signature helpers
 ├── account/           Business, banks, account resolution, BVN
 ├── balances/          Wallets, history, statements, top-ups
 ├── beneficiaries/     Saved-recipient management
@@ -317,7 +318,7 @@ to an unexpected host.
 ├── directcharge/      Card, bank-transfer, mobile-money, EFT charges
 ├── mandates/          Direct-debit mandates
 ├── payouts/           Disbursements and transfers
-├── virtualaccounts/   Permanent and temporary virtual accounts
+├── virtualaccounts/   Permanent, temporary, and BVN virtual-account lookup
 ├── internal/api/      Shared validation and request helpers
 ├── internal/httpclient/ Verb adapter used by resource services
 ├── test/              External (fincra_test) tests
@@ -325,8 +326,8 @@ to an unexpected host.
 ```
 
 New resources should follow the same shape: a `XxxService` field on `Client`,
-typed request/response structs, methods that build a relative path, and a single
-call to `Client.Do`.
+typed request/response structs, methods that build a relative path, and a call
+through the injected verb-based HTTP client.
 
 ## Roadmap
 
@@ -339,7 +340,18 @@ call to `Client.Do`.
 - [x] Virtual accounts and deposits
 - [x] Payouts, beneficiaries, and transfers
 - [x] Refunds, chargebacks, and mandates
-- [ ] Webhook event types and payload structs
+- [x] Webhook event types and payload structs
+
+Conversion listing and status lookup, BVN virtual-account lookup, charge OTP
+resend, mandate listing, and typed stablecoin payout beneficiary fields are
+available on their existing services. Virtual-account responses expose nested
+account information, including CAD Interac aliases.
+
+Webhook payloads can be decoded with `webhook.WebhookEnvelope[T]`, using the
+matching payload type such as `webhook.PayoutWebhookData` or
+`webhook.CollectionWebhookData` after verifying the signature against the
+untouched raw request body. Root-level signature helpers remain available for
+compatibility.
 
 ## Development
 

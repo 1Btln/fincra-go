@@ -98,3 +98,34 @@ func (s *Service) ListRates(ctx context.Context, params *RateParams) (*RatesResp
 	}
 	return &out, nil
 }
+
+// List returns the conversions for a business.
+func (s *Service) List(ctx context.Context, params *ListParams) (*ConversionListResponse, error) {
+	if params == nil {
+		params = &ListParams{}
+	}
+	id, err := api.BusinessID(params.BusinessID, s.backend.BusinessID())
+	if err != nil {
+		return nil, err
+	}
+	query := url.Values{"business": {id}}
+	var out ConversionListResponse
+	if err := s.backend.Get(ctx, "/conversions?"+query.Encode(), &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// Get returns a conversion by its Fincra-generated reference.
+func (s *Service) Get(ctx context.Context, reference string) (*ConversionResponse, error) {
+	reference = strings.TrimSpace(reference)
+	if err := api.Require("conversionReference", reference); err != nil {
+		return nil, err
+	}
+	var out ConversionResponse
+	path := "/conversions/reference/" + url.PathEscape(reference)
+	if err := s.backend.Get(ctx, path, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}

@@ -32,20 +32,47 @@ type Request struct {
 
 // Account contains issued virtual-account information.
 type Account struct {
-	ID                string         `json:"_id"`
-	Status            string         `json:"status"`
-	IsActive          bool           `json:"isActive"`
-	AccountNumber     string         `json:"accountNumber"`
-	MerchantReference string         `json:"merchantReference"`
-	Business          string         `json:"business"`
-	Currency          string         `json:"currency"`
-	AccountType       string         `json:"accountType"`
-	AccountName       string         `json:"accountName"`
-	BankName          string         `json:"bankName"`
-	BankCode          string         `json:"bankCode"`
-	KYCInformation    map[string]any `json:"KYCInformation"`
-	CreatedAt         string         `json:"createdAt"`
-	UpdatedAt         string         `json:"updatedAt"`
+	ID                 string              `json:"_id"`
+	Status             string              `json:"status"`
+	IsActive           bool                `json:"isActive"`
+	AccountNumber      string              `json:"accountNumber"`
+	MerchantReference  string              `json:"merchantReference"`
+	Business           string              `json:"business"`
+	Currency           string              `json:"currency"`
+	AccountType        string              `json:"accountType"`
+	AccountName        string              `json:"accountName"`
+	BankName           string              `json:"bankName"`
+	BankCode           string              `json:"bankCode"`
+	AccountInformation *AccountInformation `json:"accountInformation"`
+	KYCInformation     map[string]any      `json:"KYCInformation"`
+	CreatedAt          string              `json:"createdAt"`
+	UpdatedAt          string              `json:"updatedAt"`
+}
+
+// AccountInformation contains issued bank-account details. Some currencies,
+// including CAD, expose their receiving address in OtherInfo instead of an
+// account number.
+type AccountInformation struct {
+	AccountNumber string            `json:"accountNumber"`
+	AccountName   string            `json:"accountName"`
+	BankName      string            `json:"bankName"`
+	BankCode      string            `json:"bankCode"`
+	CountryCode   string            `json:"countryCode"`
+	Email         string            `json:"email"`
+	BankAddress   string            `json:"bankAddress"`
+	OtherInfo     *AccountOtherInfo `json:"otherInfo"`
+}
+
+// AccountOtherInfo contains country-specific account details.
+type AccountOtherInfo struct {
+	IBAN          string `json:"iban"`
+	AccountNumber string `json:"accountNumber"`
+	CheckNumber   string `json:"checkNumber"`
+	SortCode      string `json:"sortCode"`
+	BankSwiftCode string `json:"bankSwiftCode"`
+	AddressableIn string `json:"addressableIn"`
+	Memo          string `json:"memo"`
+	InteracEmail  string `json:"interacEmail"`
 }
 
 // AccountResponse is returned by Service.Request and Service.Get.
@@ -106,4 +133,42 @@ type TemporaryAccountResponse struct {
 	Status  bool                 `json:"status,omitempty"`
 	Message string               `json:"message"`
 	Data    TemporaryAccountData `json:"data"`
+}
+
+// BVNLookupParams identifies a business and BVN for Service.GetByBVN.
+// BusinessID defaults to the ID configured on the client.
+type BVNLookupParams struct {
+	BVN        string
+	BusinessID string
+}
+
+// BVNAccountInformation contains the bank details returned by the BVN lookup.
+type BVNAccountInformation = AccountInformation
+
+// BVNAccount is a virtual account record returned by the BVN lookup endpoint.
+type BVNAccount struct {
+	ID                         string                  `json:"_id"`
+	Business                   string                  `json:"business"`
+	Status                     string                  `json:"status"`
+	IsActive                   bool                    `json:"isActive"`
+	AccountNumber              string                  `json:"accountNumber"`
+	MerchantReference          string                  `json:"merchantReference"`
+	Currency                   string                  `json:"currency"`
+	AccountType                string                  `json:"accountType"`
+	AccountInformation         BVNAccountInformation   `json:"accountInformation"`
+	PreviousAccountInformation []BVNAccountInformation `json:"previousAccountInformation"`
+	KYCInformation             map[string]any          `json:"KYCInformation"`
+	Metadata                   map[string]any          `json:"metadata"`
+	IsPermanent                bool                    `json:"isPermanent"`
+	ExpiresAt                  *string                 `json:"expiresAt"`
+	Reason                     *string                 `json:"reason"`
+	CreatedAt                  string                  `json:"createdAt"`
+	UpdatedAt                  string                  `json:"updatedAt"`
+}
+
+// BVNLookupResponse is returned by Service.GetByBVN.
+type BVNLookupResponse struct {
+	Success bool         `json:"success"`
+	Message string       `json:"message"`
+	Data    []BVNAccount `json:"data"`
 }

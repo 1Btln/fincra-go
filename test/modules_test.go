@@ -17,6 +17,7 @@ import (
 	"github.com/1Btln/fincra-go/conversions"
 	"github.com/1Btln/fincra-go/directcharge"
 	"github.com/1Btln/fincra-go/mandates"
+	"github.com/1Btln/fincra-go/payouts"
 	"github.com/1Btln/fincra-go/virtualaccounts"
 )
 
@@ -216,6 +217,13 @@ func TestConversionsServiceContract(t *testing.T) {
 				t.Errorf("rates query = %v", r.URL.Query())
 			}
 			respond(w, `{"success":true,"data":{"rates":[{"baseCurrency":"USD","quoteCurrency":"NGN","side":"buy","price":1500}],"pagination":{"page":3}}}`)
+		case "/conversions":
+			if r.URL.Query().Get("business") != "biz_789" {
+				t.Errorf("conversions query = %v", r.URL.Query())
+			}
+			respond(w, `{"success":true,"data":{"results":[{"reference":"conversion-1","status":"successful","sourceCurrency":"USD","destinationCurrency":"NGN"}],"total":1}}`)
+		case "/conversions/reference/conversion-1":
+			respond(w, `{"success":true,"data":{"reference":"conversion-1","status":"successful","sourceCurrency":"USD","destinationCurrency":"NGN"}}`)
 		default:
 			t.Errorf("unexpected conversions path %q", r.URL.Path)
 			http.NotFound(w, r)
@@ -238,6 +246,14 @@ func TestConversionsServiceContract(t *testing.T) {
 	rates, err := client.Conversions.ListRates(ctx, &conversions.RateParams{CurrencyPair: "usd-ngn", Page: 3})
 	if err != nil || len(rates.Data.Rates) != 1 || rates.Data.Rates[0].Price != 1500 {
 		t.Fatalf("ListRates() = %+v, %v", rates, err)
+	}
+	listed, err := client.Conversions.List(ctx, nil)
+	if err != nil || listed.Data.Total != 1 || listed.Data.Results[0].Reference != "conversion-1" {
+		t.Fatalf("List() = %+v, %v", listed, err)
+	}
+	got, err := client.Conversions.Get(ctx, "conversion-1")
+	if err != nil || got.Data.Reference != "conversion-1" {
+		t.Fatalf("Get() = %+v, %v", got, err)
 	}
 }
 
@@ -266,6 +282,11 @@ func TestDirectChargeServiceContract(t *testing.T) {
 				t.Errorf("verify method = %s", r.Method)
 			}
 			respond(w, `{"status":true,"data":{"id":123,"reference":"charge-1","status":"success"}}`)
+		case "/checkout-core/charges/123/resent-otp":
+			if r.Method != http.MethodPost {
+				t.Errorf("resend OTP method = %s, want POST", r.Method)
+			}
+			respond(w, `{}`)
 		default:
 			t.Errorf("unexpected charge path %q", r.URL.Path)
 			http.NotFound(w, r)
@@ -289,11 +310,19 @@ func TestDirectChargeServiceContract(t *testing.T) {
 	if err != nil || verified.Data.Status != "success" {
 		t.Fatalf("Verify() = %+v, %v", verified, err)
 	}
+	if err := client.DirectCharge.ResendOTP(ctx, "123"); err != nil {
+		t.Fatalf("ResendOTP(): %v", err)
+	}
 }
 
 func TestMandatesServiceContract(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case "/v2/mandate-mgt/mandates/":
+			if r.Method != http.MethodGet || r.URL.Query().Get("perPage") != "2" {
+				t.Errorf("list mandates request = %s, query %v", r.Method, r.URL.Query())
+			}
+			respond(w, `{"results":[{"amount":1000,"reference":"mandate-1","status":"approved"}],"total":1,"perPage":"2","page":1}`)
 		case "/mandate-mgt/mandates/":
 			body := decodeRequest[map[string]any](t, r)
 			if body["currency"] != "NGN" || body["customer"] == nil {
@@ -321,6 +350,10 @@ func TestMandatesServiceContract(t *testing.T) {
 
 	client := newClientWithHandler(t, handler)
 	ctx := context.Background()
+	mandateList, err := client.Mandates.List(ctx, 2)
+	if err != nil || mandateList.Total != 1 || mandateList.Results[0].Reference != "mandate-1" {
+		t.Fatalf("List() = %+v, %v", mandateList, err)
+	}
 	mandate, err := client.Mandates.Create(ctx, &mandates.CreateRequest{
 		Amount: "1000", Description: "monthly service", StartDate: "2030-01-01", EndDate: "2030-12-31",
 		BusinessAddress: "Lagos", Currency: "NGN", Customer: &mandates.MandateCustomer{
@@ -366,8 +399,13 @@ func TestVirtualAccountsServiceContract(t *testing.T) {
 				t.Errorf("temporary account body = %v", body)
 			}
 			respond(w, `{"status":true,"data":{"accountNumber":"1234567890","reference":"temp-1"}}`)
+		case "/profile/virtual-accounts/bvn":
+			if r.URL.Query().Get("bvn") != "12345678901" || r.URL.Query().Get("business") != "biz_789" {
+				t.Errorf("BVN lookup query = %v", r.URL.Query())
+			}
+			respond(w, `{"success":true,"data":[{"_id":"va-1","currency":"NGN","accountInformation":{"accountNumber":"1234567890","accountName":"Ada Lovelace","bankName":"Fincra Bank"}}]}`)
 		case "/profile/virtual-accounts/va-1":
-			respond(w, `{"success":true,"data":{"_id":"va-1","accountNumber":"1234567890","currency":"USD"}}`)
+			respond(w, `{"success":true,"data":{"_id":"va-1","accountNumber":"1234567890","currency":"CAD","accountInformation":{"accountNumber":"1234567890","accountName":"Ada Lovelace","bankName":"Fincra Bank","otherInfo":{"addressableIn":"INTERAC_ETRANSFER","interacEmail":"ada@example.ca"}}}}`)
 		case "/profile/virtual-accounts/":
 			if r.URL.Query().Get("currency") != "usd" {
 				t.Errorf("currency query = %v", r.URL.Query())
@@ -397,12 +435,69 @@ func TestVirtualAccountsServiceContract(t *testing.T) {
 		t.Fatalf("RequestTemporary() = %+v, %v", temporary, err)
 	}
 	account, err := client.VirtualAccounts.Get(ctx, "va-1")
-	if err != nil || account.Data.AccountNumber != "1234567890" {
+	if err != nil || account.Data.AccountNumber != "1234567890" || account.Data.AccountInformation == nil || account.Data.AccountInformation.OtherInfo == nil || account.Data.AccountInformation.OtherInfo.InteracEmail != "ada@example.ca" {
 		t.Fatalf("Get() = %+v, %v", account, err)
+	}
+	byBVN, err := client.VirtualAccounts.GetByBVN(ctx, &virtualaccounts.BVNLookupParams{BVN: "12345678901"})
+	if err != nil || len(byBVN.Data) != 1 || byBVN.Data[0].AccountInformation.AccountName != "Ada Lovelace" {
+		t.Fatalf("GetByBVN() = %+v, %v", byBVN, err)
 	}
 	list, err := client.VirtualAccounts.List(ctx, "USD")
 	if err != nil || list.Data.Total != 1 {
 		t.Fatalf("List() = %+v, %v", list, err)
+	}
+}
+
+func TestStablecoinPayoutRequestContract(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost || r.URL.Path != "/disbursements/payouts" {
+			t.Errorf("payout request = %s %s", r.Method, r.URL.Path)
+		}
+		assertCredentials(t, r, "biz_789")
+		body := decodeRequest[map[string]any](t, r)
+		beneficiary := body["beneficiary"].(map[string]any)
+		if body["paymentDestination"] != "crypto_wallet" || body["paymentScheme"] != "usdt_trc20" || beneficiary["walletAddress"] != "TExampleWalletAddress" || beneficiary["destinationTag"] != "memo-42" {
+			t.Errorf("stablecoin payout body = %v", body)
+		}
+		respond(w, `{"success":true,"data":{"reference":"payout-1","status":"processing"}}`)
+	})
+
+	client := newClientWithHandler(t, handler)
+	result, err := client.Payouts.CreatePayout(context.Background(), &payouts.PayoutRequest{
+		SourceCurrency: "USD", DestinationCurrency: "USDT", Amount: 10,
+		QuoteReference: "quote-1", PaymentDestination: "crypto_wallet", PaymentScheme: "usdt_trc20",
+		CustomerReference: "crypto-1",
+		Beneficiary: payouts.Beneficiary{
+			AccountHolderName: "Ada Lovelace", WalletAddress: "TExampleWalletAddress", DestinationTag: "memo-42",
+		},
+	})
+	if err != nil || result.Data.Reference != "payout-1" {
+		t.Fatalf("CreatePayout() = %+v, %v", result, err)
+	}
+}
+
+func TestCADPayoutRequestContract(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertCredentials(t, r, "biz_789")
+		body := decodeRequest[map[string]any](t, r)
+		beneficiary := body["beneficiary"].(map[string]any)
+		if body["sourceCurrency"] != "CAD" || body["destinationCurrency"] != "CAD" || body["paymentScheme"] != "interac" || beneficiary["interacEmail"] != "payee@example.ca" || beneficiary["securityQuestion"] != "Shared city?" || beneficiary["securityAnswer"] != "Lagos" {
+			t.Errorf("CAD payout body = %v", body)
+		}
+		respond(w, `{"success":true,"data":{"reference":"cad-payout-1","status":"processing"}}`)
+	})
+
+	client := newClientWithHandler(t, handler)
+	result, err := client.Payouts.CreatePayout(context.Background(), &payouts.PayoutRequest{
+		SourceCurrency: "CAD", DestinationCurrency: "CAD", Amount: 100,
+		PaymentDestination: "bank_account", PaymentScheme: "interac", CustomerReference: "cad-1",
+		Beneficiary: payouts.Beneficiary{
+			AccountHolderName: "Ada Lovelace", InteracEmail: "payee@example.ca",
+			SecurityQuestion: "Shared city?", SecurityAnswer: "Lagos",
+		},
+	})
+	if err != nil || result.Data.Reference != "cad-payout-1" {
+		t.Fatalf("CreatePayout() = %+v, %v", result, err)
 	}
 }
 

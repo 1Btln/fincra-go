@@ -50,18 +50,31 @@ type InitiateRequest struct {
 
 // Conversion is the result of a wallet currency conversion.
 type Conversion struct {
-	Business            string  `json:"business"`
-	AmountCharged       float64 `json:"amountCharged"`
-	AmountReceived      float64 `json:"amountReceived"`
-	Fee                 float64 `json:"fee"`
-	SourceCurrency      string  `json:"sourceCurrency"`
-	DestinationCurrency string  `json:"destinationCurrency"`
-	Rate                float64 `json:"rate"`
-	Status              string  `json:"status"`
-	Reference           string  `json:"reference"`
-	CustomerReference   string  `json:"customerReference"`
-	CreatedAt           string  `json:"createdAt"`
-	UpdatedAt           string  `json:"updatedAt"`
+	ID                      int64   `json:"id"`
+	ObjectID                string  `json:"_id"`
+	BusinessName            string  `json:"businessName,omitempty"`
+	Business                string  `json:"business"`
+	AmountCharged           float64 `json:"amountCharged"`
+	AmountReceived          float64 `json:"amountReceived"`
+	Fee                     float64 `json:"fee"`
+	SourceFee               float64 `json:"sourceFee,omitempty"`
+	DestinationFee          float64 `json:"destinationFee,omitempty"`
+	SourceCurrency          string  `json:"sourceCurrency"`
+	DestinationCurrency     string  `json:"destinationCurrency"`
+	Rate                    float64 `json:"rate"`
+	SourceExchangeRate      float64 `json:"sourceExchangeRate,omitempty"`
+	DestinationExchangeRate float64 `json:"destinationExchangeRate,omitempty"`
+	SettlementDate          string  `json:"settlementDate,omitempty"`
+	SettledAt               string  `json:"settledAt,omitempty"`
+	SettlementDestination   string  `json:"settlementDestination,omitempty"`
+	Description             string  `json:"description,omitempty"`
+	Message                 string  `json:"message,omitempty"`
+	IsSubAccount            int     `json:"isSubAccount,omitempty"`
+	Status                  string  `json:"status"`
+	Reference               string  `json:"reference"`
+	CustomerReference       string  `json:"customerReference"`
+	CreatedAt               string  `json:"createdAt"`
+	UpdatedAt               string  `json:"updatedAt"`
 }
 
 // ConversionResponse is returned by Service.Initiate.
@@ -80,6 +93,24 @@ type RateParams struct {
 	QuoteCurrency string
 	Page          int
 	PerPage       int
+}
+
+// ListParams filters Service.List.
+type ListParams struct {
+	BusinessID string
+}
+
+// ConversionListData is the data payload of ConversionListResponse.
+type ConversionListData struct {
+	Results []Conversion `json:"results"`
+	Total   int          `json:"total"`
+}
+
+// ConversionListResponse is returned by Service.List.
+type ConversionListResponse struct {
+	Success bool               `json:"success"`
+	Message string             `json:"message"`
+	Data    ConversionListData `json:"data"`
 }
 
 // Rate is a buy or sell rate for a currency pair.

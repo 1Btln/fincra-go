@@ -1,9 +1,11 @@
 package fincra_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	fincra "github.com/1Btln/fincra-go"
+	"github.com/1Btln/fincra-go/webhook"
 )
 
 const (
@@ -62,5 +64,21 @@ func TestClientVerifyWebhookSignature(t *testing.T) {
 	noSecret := newTestClient(t, "https://example.test")
 	if noSecret.VerifyWebhookSignature([]byte(testWebhookPayload), testWebhookSignature) {
 		t.Error("client without webhook secret verified signature, want false")
+	}
+}
+
+func TestWebhookPackageTypesAndSignatureHelpers(t *testing.T) {
+	var event webhook.WebhookEnvelope[webhook.PayoutWebhookData]
+	if err := json.Unmarshal([]byte(testWebhookPayload), &event); err != nil {
+		t.Fatalf("Unmarshal webhook: %v", err)
+	}
+	if event.Event != webhook.WebhookPayoutSuccessful || event.Data.Reference != "33aef44be6f7441a" {
+		t.Fatalf("decoded event = %+v", event)
+	}
+	if got := webhook.SignPayload(testWebhookSecret, []byte(testWebhookPayload)); got != testWebhookSignature {
+		t.Errorf("SignPayload() = %q, want %q", got, testWebhookSignature)
+	}
+	if !webhook.VerifySignature(testWebhookSecret, []byte(testWebhookPayload), testWebhookSignature) {
+		t.Error("VerifySignature() = false for valid signature")
 	}
 }

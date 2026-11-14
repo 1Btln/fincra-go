@@ -1,23 +1,18 @@
 package fincra
 
 import (
-	"crypto/hmac"
-	"crypto/sha512"
-	"encoding/hex"
-	"strings"
+	"github.com/1Btln/fincra-go/webhook"
 )
 
 // WebhookSignatureHeader is the header Fincra uses for the HMAC-SHA512
 // signature of a webhook payload. Header lookups are case-insensitive in net/http.
-const WebhookSignatureHeader = "signature"
+const WebhookSignatureHeader = webhook.SignatureHeader
 
 // SignWebhookPayload returns the lowercase hex HMAC-SHA512 of payload using
 // secret. It is exposed so tests and local mocks can produce signatures that
 // match Fincra's.
 func SignWebhookPayload(secret string, payload []byte) string {
-	mac := hmac.New(sha512.New, []byte(secret))
-	_, _ = mac.Write(payload)
-	return hex.EncodeToString(mac.Sum(nil))
+	return webhook.SignPayload(secret, payload)
 }
 
 // VerifyWebhookSignature reports whether signature is the HMAC-SHA512 of the
@@ -26,12 +21,7 @@ func SignWebhookPayload(secret string, payload []byte) string {
 // Pass the raw request body exactly as received. Re-marshalling a decoded struct
 // changes key order and whitespace, which invalidates the signature.
 func VerifyWebhookSignature(secret string, payload []byte, signature string) bool {
-	if secret == "" {
-		return false
-	}
-	expected := SignWebhookPayload(secret, payload)
-	actual := strings.ToLower(strings.TrimSpace(signature))
-	return hmac.Equal([]byte(expected), []byte(actual))
+	return webhook.VerifySignature(secret, payload, signature)
 }
 
 // VerifyWebhookSignature verifies a signature using the client's configured

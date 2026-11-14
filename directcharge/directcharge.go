@@ -94,3 +94,13 @@ func (s *Service) Verify(ctx context.Context, reference string) (*ChargeResponse
 	}
 	return &out, nil
 }
+
+// ResendOTP requests another OTP for a charge that is awaiting authorization.
+func (s *Service) ResendOTP(ctx context.Context, chargeID string) error {
+	chargeID = strings.TrimSpace(chargeID)
+	if err := api.Require("chargeID", chargeID); err != nil {
+		return err
+	}
+	path := "/checkout-core/charges/" + url.PathEscape(chargeID) + "/resent-otp"
+	return s.backend.Post(ctx, path, nil, nil)
+}

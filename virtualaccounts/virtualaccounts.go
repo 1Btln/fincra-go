@@ -96,3 +96,24 @@ func (s *Service) List(ctx context.Context, currency string) (*AccountListRespon
 	}
 	return &out, nil
 }
+
+// GetByBVN retrieves virtual-account records associated with a BVN.
+func (s *Service) GetByBVN(ctx context.Context, params *BVNLookupParams) (*BVNLookupResponse, error) {
+	if params == nil {
+		return nil, api.Missing("request")
+	}
+	bvn := strings.TrimSpace(params.BVN)
+	if err := api.Require("bvn", bvn); err != nil {
+		return nil, err
+	}
+	businessID, err := api.BusinessID(params.BusinessID, s.backend.BusinessID())
+	if err != nil {
+		return nil, err
+	}
+	query := url.Values{"bvn": {bvn}, "business": {businessID}}
+	var out BVNLookupResponse
+	if err := s.backend.Get(ctx, "/profile/virtual-accounts/bvn?"+query.Encode(), &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}

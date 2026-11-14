@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Resource services for accounts, beneficiaries, checkout, collections,
+  conversions, direct charges, mandates, payouts, and virtual accounts.
+- Conversion list and reference lookup, virtual-account BVN lookup, charge OTP
+  resend, mandate listing, and typed stablecoin payout fields.
+- The `webhook` package with typed Fincra event payloads and signature helpers;
+  root-level signature helpers remain available.
+- External `httptest` contract tests for public SDK behavior in `test/`.
+
 ## [0.1.0] - 2026-11-13
 
 Initial public release.

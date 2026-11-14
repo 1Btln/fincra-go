@@ -19,27 +19,29 @@ type Address struct {
 
 // Beneficiary is the recipient of a payout.
 type Beneficiary struct {
-	FirstName            string  `json:"firstName,omitempty"`
-	LastName             string  `json:"lastName,omitempty"`
-	MiddleName           string  `json:"middleName,omitempty"`
-	AccountHolderName    string  `json:"accountHolderName,omitempty"`
-	Email                string  `json:"email,omitempty"`
-	Phone                string  `json:"phone,omitempty"`
-	AccountNumber        string  `json:"accountNumber,omitempty"`
-	Type                 string  `json:"type,omitempty"`
-	Country              string  `json:"country,omitempty"`
-	BankCode             string  `json:"bankCode,omitempty"`
-	BankName             string  `json:"bankName,omitempty"`
-	SortCode             string  `json:"sortCode,omitempty"`
-	BankSwiftCode        string  `json:"bankSwiftCode,omitempty"`
-	MobileMoneyCode      string  `json:"mobileMoneyCode,omitempty"`
-	InteracEmail         string  `json:"interacEmail,omitempty"`
-	SecurityQuestion     string  `json:"securityQuestion,omitempty"`
-	SecurityAnswer       string  `json:"securityAnswer,omitempty"`
-	BirthDate            string  `json:"birthDate,omitempty"`
-	BirthPlace           string  `json:"birthPlace,omitempty"`
-	RegistrationNumber   string  `json:"registrationNumber,omitempty"`
-	IncorporationCountry string  `json:"incorporationCountry,omitempty"`
+	FirstName            string   `json:"firstName,omitempty"`
+	LastName             string   `json:"lastName,omitempty"`
+	MiddleName           string   `json:"middleName,omitempty"`
+	AccountHolderName    string   `json:"accountHolderName,omitempty"`
+	Email                string   `json:"email,omitempty"`
+	Phone                string   `json:"phone,omitempty"`
+	AccountNumber        string   `json:"accountNumber,omitempty"`
+	WalletAddress        string   `json:"walletAddress,omitempty"`
+	DestinationTag       string   `json:"destinationTag,omitempty"`
+	Type                 string   `json:"type,omitempty"`
+	Country              string   `json:"country,omitempty"`
+	BankCode             string   `json:"bankCode,omitempty"`
+	BankName             string   `json:"bankName,omitempty"`
+	SortCode             string   `json:"sortCode,omitempty"`
+	BankSwiftCode        string   `json:"bankSwiftCode,omitempty"`
+	MobileMoneyCode      string   `json:"mobileMoneyCode,omitempty"`
+	InteracEmail         string   `json:"interacEmail,omitempty"`
+	SecurityQuestion     string   `json:"securityQuestion,omitempty"`
+	SecurityAnswer       string   `json:"securityAnswer,omitempty"`
+	BirthDate            string   `json:"birthDate,omitempty"`
+	BirthPlace           string   `json:"birthPlace,omitempty"`
+	RegistrationNumber   string   `json:"registrationNumber,omitempty"`
+	IncorporationCountry string   `json:"incorporationCountry,omitempty"`
 	Address              *Address `json:"address,omitempty"`
 	BankAddress          *Address `json:"bankAddress,omitempty"`
 }
@@ -111,6 +113,8 @@ type Recipient struct {
 	Email                string   `json:"email"`
 	Phone                string   `json:"phone"`
 	AccountNumber        string   `json:"accountNumber"`
+	WalletAddress        string   `json:"walletAddress"`
+	DestinationTag       string   `json:"destinationTag"`
 	Type                 string   `json:"type"`
 	Country              string   `json:"country"`
 	BankCode             string   `json:"bankCode"`
@@ -127,29 +131,29 @@ type Recipient struct {
 
 // Payout is a single payout with full detail.
 type Payout struct {
-	ID                    int64           `json:"id"`
-	AmountSent            float64         `json:"amountSent"`
-	AmountReceived        float64         `json:"amountReceived"`
-	SourceCurrency        string          `json:"sourceCurrency"`
-	DestinationCurrency   string          `json:"destinationCurrency"`
-	Fee                   float64         `json:"fee"`
-	QuoteID               string          `json:"quoteId"`
-	Status                string          `json:"status"`
-	Reference             string          `json:"reference"`
-	CustomerReference     string          `json:"customerReference"`
-	Description           string          `json:"description"`
-	PaymentDestination    string          `json:"paymentDestination"`
-	PaymentScheme         string          `json:"paymentScheme"`
-	AdditionalInfo        any             `json:"additionalInfo"`
-	TraceID               string          `json:"traceId"`
-	Message               string          `json:"message"`
-	IsDocumentRequired    int             `json:"isDocumentRequired"`
-	IsDocumentUploaded    int             `json:"isDocumentUploaded"`
-	DocumentsRequired     []string        `json:"documentsRequired"`
-	ValuedAt              time.Time       `json:"valuedAt"`
-	CreatedAt             time.Time       `json:"createdAt"`
-	UpdatedAt             time.Time       `json:"updatedAt"`
-	Recipient             Recipient       `json:"recipient"`
+	ID                  int64     `json:"id"`
+	AmountSent          float64   `json:"amountSent"`
+	AmountReceived      float64   `json:"amountReceived"`
+	SourceCurrency      string    `json:"sourceCurrency"`
+	DestinationCurrency string    `json:"destinationCurrency"`
+	Fee                 float64   `json:"fee"`
+	QuoteID             string    `json:"quoteId"`
+	Status              string    `json:"status"`
+	Reference           string    `json:"reference"`
+	CustomerReference   string    `json:"customerReference"`
+	Description         string    `json:"description"`
+	PaymentDestination  string    `json:"paymentDestination"`
+	PaymentScheme       string    `json:"paymentScheme"`
+	AdditionalInfo      any       `json:"additionalInfo"`
+	TraceID             string    `json:"traceId"`
+	Message             string    `json:"message"`
+	IsDocumentRequired  int       `json:"isDocumentRequired"`
+	IsDocumentUploaded  int       `json:"isDocumentUploaded"`
+	DocumentsRequired   []string  `json:"documentsRequired"`
+	ValuedAt            time.Time `json:"valuedAt"`
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+	Recipient           Recipient `json:"recipient"`
 }
 
 // PayoutResponse is returned by Service.CreatePayout and the status lookups.
@@ -161,13 +165,13 @@ type PayoutResponse struct {
 
 // CreatedPayout is the compact result of creating a payout.
 type CreatedPayout struct {
-	ID                  int64    `json:"id"`
-	Reference            string   `json:"reference"`
-	CustomerReference    string   `json:"customerReference"`
-	Status               string   `json:"status"`
-	Message              string   `json:"message"`
-	IsDocumentRequired   bool     `json:"isDocumentRequired"`
-	DocumentsRequired    []string `json:"documentsRequired"`
+	ID                 int64    `json:"id"`
+	Reference          string   `json:"reference"`
+	CustomerReference  string   `json:"customerReference"`
+	Status             string   `json:"status"`
+	Message            string   `json:"message"`
+	IsDocumentRequired bool     `json:"isDocumentRequired"`
+	DocumentsRequired  []string `json:"documentsRequired"`
 }
 
 // CreatePayoutResponse is returned by Service.CreatePayout.
