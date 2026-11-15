@@ -1,6 +1,6 @@
-// Package httpclient provides the verb-oriented request interface used by
-// resource services. The root SDK client owns authentication, retries,
-// transport policy, logging, and response handling through its Do method.
+// Package httpclient provides the authenticated verb-oriented request
+// interface used by resource services and SDK callers. The root SDK client
+// keeps request execution and transport policy private.
 package httpclient
 
 import (

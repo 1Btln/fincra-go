@@ -38,7 +38,7 @@ func TestLogBasicRequest(t *testing.T) {
 	defer srv.Close()
 
 	client, buf := newLoggingClient(t, srv.URL)
-	if err := client.Do(context.Background(), http.MethodGet, "/wallets?businessID=biz_789", nil, nil); err != nil {
+	if err := client.HTTPClient.Get(context.Background(), "/wallets?businessID=biz_789", nil); err != nil {
 		t.Fatalf("Do: %v", err)
 	}
 
@@ -68,7 +68,7 @@ func TestLogDepthNoneDisables(t *testing.T) {
 	defer srv.Close()
 
 	client, buf := newLoggingClient(t, srv.URL, fincra.WithLogDepth(fincra.LogDepthNone))
-	if err := client.Do(context.Background(), http.MethodGet, "/wallets", nil, nil); err != nil {
+	if err := client.HTTPClient.Get(context.Background(), "/wallets", nil); err != nil {
 		t.Fatalf("Do: %v", err)
 	}
 	if buf.Len() != 0 {
@@ -83,7 +83,7 @@ func TestLogLevelFilters(t *testing.T) {
 	defer srv.Close()
 
 	client, buf := newLoggingClient(t, srv.URL, fincra.WithLogLevel(slog.LevelWarn))
-	if err := client.Do(context.Background(), http.MethodGet, "/wallets", nil, nil); err != nil {
+	if err := client.HTTPClient.Get(context.Background(), "/wallets", nil); err != nil {
 		t.Fatalf("Do: %v", err)
 	}
 	if buf.Len() != 0 {
@@ -96,7 +96,7 @@ func TestLogLevelFilters(t *testing.T) {
 	defer failing.Close()
 
 	client, buf = newLoggingClient(t, failing.URL, fincra.WithLogLevel(slog.LevelWarn), fincra.WithMaxRetries(0))
-	if err := client.Do(context.Background(), http.MethodGet, "/wallets", nil, nil); err == nil {
+	if err := client.HTTPClient.Get(context.Background(), "/wallets", nil); err == nil {
 		t.Fatal("Do() error = nil, want error")
 	}
 	if buf.Len() == 0 {
@@ -112,7 +112,7 @@ func TestLogHeadersMasked(t *testing.T) {
 	defer srv.Close()
 
 	client, buf := newLoggingClient(t, srv.URL, fincra.WithLogDepth(fincra.LogDepthHeaders))
-	if err := client.Do(context.Background(), http.MethodGet, "/wallets", nil, nil); err != nil {
+	if err := client.HTTPClient.Get(context.Background(), "/wallets", nil); err != nil {
 		t.Fatalf("Do: %v", err)
 	}
 
@@ -141,7 +141,7 @@ func TestLogQueryParamsMasked(t *testing.T) {
 	defer srv.Close()
 
 	client, buf := newLoggingClient(t, srv.URL)
-	if err := client.Do(context.Background(), http.MethodGet, "/wallets?token=super-secret&businessID=biz_789", nil, nil); err != nil {
+	if err := client.HTTPClient.Get(context.Background(), "/wallets?token=super-secret&businessID=biz_789", nil); err != nil {
 		t.Fatalf("Do: %v", err)
 	}
 
@@ -170,7 +170,7 @@ func TestLogBodyMasked(t *testing.T) {
 		"api_key":   "sk_body_secret",
 		"nested":    map[string]any{"token": "nested-secret"},
 	}
-	if err := client.Do(context.Background(), http.MethodPost, "/payments", body, nil); err != nil {
+	if err := client.HTTPClient.Post(context.Background(), "/payments", body, nil); err != nil {
 		t.Fatalf("Do: %v", err)
 	}
 
@@ -197,7 +197,7 @@ func TestLogBodyTruncated(t *testing.T) {
 		fincra.WithLogDepth(fincra.LogDepthBody),
 		fincra.WithLogBodyLimit(24),
 	)
-	if err := client.Do(context.Background(), http.MethodGet, "/wallets", nil, nil); err != nil {
+	if err := client.HTTPClient.Get(context.Background(), "/wallets", nil); err != nil {
 		t.Fatalf("Do: %v", err)
 	}
 	if !strings.Contains(buf.String(), "(truncated)") {
@@ -213,7 +213,7 @@ func TestLogNonJSONBodySuppressed(t *testing.T) {
 	defer srv.Close()
 
 	client, buf := newLoggingClient(t, srv.URL, fincra.WithLogDepth(fincra.LogDepthBody))
-	if err := client.Do(context.Background(), http.MethodGet, "/wallets", nil, nil); err != nil {
+	if err := client.HTTPClient.Get(context.Background(), "/wallets", nil); err != nil {
 		t.Fatalf("Do: %v", err)
 	}
 
@@ -239,7 +239,7 @@ func TestLogRetry(t *testing.T) {
 	defer srv.Close()
 
 	client, buf := newLoggingClient(t, srv.URL, fincra.WithMaxRetries(2))
-	if err := client.Do(context.Background(), http.MethodGet, "/wallets?token=retry-secret", nil, nil); err != nil {
+	if err := client.HTTPClient.Get(context.Background(), "/wallets?token=retry-secret", nil); err != nil {
 		t.Fatalf("Do: %v", err)
 	}
 
@@ -261,7 +261,7 @@ func TestLogTransportErrorMasksURL(t *testing.T) {
 	srv.Close()
 
 	client, buf := newLoggingClient(t, baseURL, fincra.WithMaxRetries(0))
-	err := client.Do(context.Background(), http.MethodGet, "/wallets?token=transport-secret", nil, nil)
+	err := client.HTTPClient.Get(context.Background(), "/wallets?token=transport-secret", nil)
 	if err == nil {
 		t.Fatal("Do() error = nil, want transport error")
 	}

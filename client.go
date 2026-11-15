@@ -42,9 +42,12 @@ const (
 // Client is a Fincra API client. It is safe for concurrent use by multiple
 // goroutines once constructed.
 type Client struct {
-	cfg        Config
-	transport  *http.Client
-	httpClient *httpclient.Client
+	cfg       Config
+	transport *http.Client
+
+	// HTTPClient exposes the authenticated HTTP verbs for endpoints not yet
+	// covered by a resource service.
+	HTTPClient HTTPClient
 
 	maskHeaders     map[string]struct{}
 	maskJSONFields  map[string]struct{}
@@ -140,17 +143,17 @@ func NewWithConfig(cfg *Config, opts ...Option) (*Client, error) {
 		maskJSONFields:  newStringSet(resolved.Log.MaskJSONFields),
 		maskQueryParams: newStringSet(resolved.Log.MaskQueryParams),
 	}
-	client.httpClient = httpclient.New(client.Do, client.BusinessID())
-	client.Account = account.New(client.httpClient)
-	client.Balances = balances.New(client.httpClient)
-	client.Beneficiaries = beneficiaries.New(client.httpClient)
-	client.Checkout = checkout.New(client.httpClient)
-	client.Collections = collections.New(client.httpClient)
-	client.Conversions = conversions.New(client.httpClient)
-	client.DirectCharge = directcharge.New(client.httpClient)
-	client.Mandates = mandates.New(client.httpClient)
-	client.Payouts = payouts.New(client.httpClient)
-	client.VirtualAccounts = virtualaccounts.New(client.httpClient)
+	client.HTTPClient = httpclient.New(client.do, client.BusinessID())
+	client.Account = account.New(client.HTTPClient)
+	client.Balances = balances.New(client.HTTPClient)
+	client.Beneficiaries = beneficiaries.New(client.HTTPClient)
+	client.Checkout = checkout.New(client.HTTPClient)
+	client.Collections = collections.New(client.HTTPClient)
+	client.Conversions = conversions.New(client.HTTPClient)
+	client.DirectCharge = directcharge.New(client.HTTPClient)
+	client.Mandates = mandates.New(client.HTTPClient)
+	client.Payouts = payouts.New(client.HTTPClient)
+	client.VirtualAccounts = virtualaccounts.New(client.HTTPClient)
 	return client, nil
 }
 
@@ -184,6 +187,11 @@ func (c *Client) BaseURL() string { return c.cfg.ResolveBaseURL() }
 // Resource packages use it when a request omits a business ID.
 func (c *Client) BusinessID() string { return c.cfg.BusinessID }
 
+// HTTPClient is the shared authenticated HTTP interface available on Client.
+// It exposes the standard verbs while keeping the SDK's request pipeline
+// private.
+type HTTPClient = api.Backend
+
 // RequestOption customises an individual request before it is sent.
 //
 // It is an alias for func(*http.Request) so resource packages can define small
@@ -198,7 +206,7 @@ func WithRequestHeader(key, value string) RequestOption {
 	}
 }
 
-// Do executes an authenticated request against Fincra.
+// do executes an authenticated request against Fincra.
 //
 // path is relative to the configured base URL and may include a query string,
 // for example "/wallets?businessID=123". An absolute http(s) URL is accepted
@@ -210,7 +218,7 @@ func WithRequestHeader(key, value string) RequestOption {
 // errors, 408, 425, 429, and common 5xx responses) are retried up to
 // Config.MaxRetries with exponential backoff and jitter, respecting a
 // Retry-After header when present.
-func (c *Client) Do(ctx context.Context, method, path string, body, out any, opts ...RequestOption) error {
+func (c *Client) do(ctx context.Context, method, path string, body, out any, opts ...RequestOption) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}

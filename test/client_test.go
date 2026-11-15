@@ -130,7 +130,7 @@ func TestDoSendsHeadersAndDecodesResponse(t *testing.T) {
 	}
 
 	client := newTestClient(t, srv.URL)
-	if err := client.Do(context.Background(), http.MethodGet, "/wallets", nil, &out); err != nil {
+	if err := client.HTTPClient.Get(context.Background(), "/wallets", &out); err != nil {
 		t.Fatalf("Do: %v", err)
 	}
 	if !out.Success || out.Data.Name != "fincra" {
@@ -161,7 +161,7 @@ func TestDoEncodesJSONBody(t *testing.T) {
 
 	client := newTestClient(t, srv.URL)
 	body := map[string]string{"reference": "ref_1"}
-	if err := client.Do(context.Background(), http.MethodPost, "/payments", body, nil); err != nil {
+	if err := client.HTTPClient.Post(context.Background(), "/payments", body, nil); err != nil {
 		t.Fatalf("Do: %v", err)
 	}
 }
@@ -176,7 +176,7 @@ func TestAPIErrorMapping(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(t, srv.URL)
-	err := client.Do(context.Background(), http.MethodGet, "/conversions/reference/abc", nil, nil)
+	err := client.HTTPClient.Get(context.Background(), "/conversions/reference/abc", nil)
 	if err == nil {
 		t.Fatal("Do() error = nil, want error")
 	}
@@ -249,7 +249,7 @@ func TestAPIErrorStatusHelpers(t *testing.T) {
 			defer srv.Close()
 
 			client := newTestClient(t, srv.URL, fincra.WithMaxRetries(0))
-			err := client.Do(context.Background(), http.MethodGet, "/x", nil, nil)
+			err := client.HTTPClient.Get(context.Background(), "/x", nil)
 			apiErr, ok := fincra.IsAPIError(err)
 			if !ok {
 				t.Fatalf("error = %v, want *fincra.APIError", err)
@@ -274,7 +274,7 @@ func TestDoRetriesOnServerError(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(t, srv.URL, fincra.WithMaxRetries(2))
-	if err := client.Do(context.Background(), http.MethodGet, "/wallets", nil, nil); err != nil {
+	if err := client.HTTPClient.Get(context.Background(), "/wallets", nil); err != nil {
 		t.Fatalf("Do: %v", err)
 	}
 	if got := atomic.LoadInt32(&attempts); got != 3 {
@@ -291,7 +291,7 @@ func TestDoRetriesExhausted(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(t, srv.URL, fincra.WithMaxRetries(2))
-	err := client.Do(context.Background(), http.MethodGet, "/wallets", nil, nil)
+	err := client.HTTPClient.Get(context.Background(), "/wallets", nil)
 	if _, ok := fincra.IsAPIError(err); !ok {
 		t.Fatalf("error = %v, want *fincra.APIError", err)
 	}
@@ -309,7 +309,7 @@ func TestDoDoesNotRetryClientError(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(t, srv.URL, fincra.WithMaxRetries(3))
-	if err := client.Do(context.Background(), http.MethodGet, "/wallets", nil, nil); err == nil {
+	if err := client.HTTPClient.Get(context.Background(), "/wallets", nil); err == nil {
 		t.Fatal("Do() error = nil, want error")
 	}
 	if got := atomic.LoadInt32(&attempts); got != 1 {
@@ -325,7 +325,7 @@ func TestDoContextCanceled(t *testing.T) {
 	cancel()
 
 	client := newTestClient(t, srv.URL)
-	err := client.Do(ctx, http.MethodGet, "/wallets", nil, nil)
+	err := client.HTTPClient.Get(ctx, "/wallets", nil)
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("error = %v, want context.Canceled", err)
 	}
@@ -333,14 +333,14 @@ func TestDoContextCanceled(t *testing.T) {
 
 func TestDoEmptyPath(t *testing.T) {
 	client := newTestClient(t, "https://example.test")
-	if err := client.Do(context.Background(), http.MethodGet, "  ", nil, nil); err == nil {
+	if err := client.HTTPClient.Get(context.Background(), "  ", nil); err == nil {
 		t.Fatal("Do() error = nil, want error")
 	}
 }
 
 func TestDoRejectsForeignAbsoluteURL(t *testing.T) {
 	client := newTestClient(t, "https://api.example.test")
-	err := client.Do(context.Background(), http.MethodGet, "https://evil.example.test/steal", nil, nil)
+	err := client.HTTPClient.Get(context.Background(), "https://evil.example.test/steal", nil)
 	if err == nil {
 		t.Fatal("Do() error = nil, want error for foreign origin")
 	}
@@ -359,8 +359,8 @@ func TestDoAcceptsSameOriginAbsoluteURL(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(t, srv.URL)
-	if err := client.Do(context.Background(), http.MethodGet, srv.URL+"/wallets", nil, nil); err != nil {
-		t.Fatalf("Do: %v", err)
+	if err := client.HTTPClient.Get(context.Background(), srv.URL+"/wallets", nil); err != nil {
+		t.Fatalf("Get: %v", err)
 	}
 }
 
@@ -377,7 +377,7 @@ func TestDoRejectsCrossHostRedirect(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(t, srv.URL, fincra.WithMaxRetries(0))
-	err := client.Do(context.Background(), http.MethodGet, "/wallets", nil, nil)
+	err := client.HTTPClient.Get(context.Background(), "/wallets", nil)
 	if err == nil {
 		t.Fatal("Do() error = nil, want redirect error")
 	}
@@ -399,11 +399,9 @@ func TestRequestOptionHeaderOverride(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(t, srv.URL)
-	err := client.Do(
+	err := client.HTTPClient.Get(
 		context.Background(),
-		http.MethodGet,
 		"/wallets",
-		nil,
 		nil,
 		fincra.WithRequestHeader("x-business-id", "biz_override"),
 	)
@@ -420,7 +418,7 @@ func TestDoDecodeError(t *testing.T) {
 
 	client := newTestClient(t, srv.URL)
 	var out map[string]any
-	err := client.Do(context.Background(), http.MethodGet, "/wallets", nil, &out)
+	err := client.HTTPClient.Get(context.Background(), "/wallets", &out)
 	var apiErr *fincra.APIError
 	if !errors.As(err, &apiErr) || apiErr.Err == nil {
 		t.Fatalf("error = %v, want *fincra.APIError with decode cause", err)
