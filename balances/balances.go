@@ -12,21 +12,14 @@ import (
 
 const defaultStatementPerPage = 20
 
-// backend is the subset of the Fincra client this package needs. The root
-// client satisfies it without an import cycle.
-type backend interface {
-	api.HTTPClient
-	BusinessID() string
-}
-
 // Service groups Fincra's balance and wallet endpoints. Access it through
 // Client.Balances.
 type Service struct {
-	backend backend
+	backend api.Backend
 }
 
 // New returns a Balances service backed by backend.
-func New(backend backend) *Service {
+func New(backend api.Backend) *Service {
 	return &Service{backend: backend}
 }
 

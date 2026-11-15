@@ -27,6 +27,13 @@ type HTTPClient interface {
 	Delete(ctx context.Context, path string, out any, opts ...func(*http.Request)) error
 }
 
+// Backend is the common HTTP and business context dependency for resource
+// services.
+type Backend interface {
+	HTTPClient
+	BusinessID() string
+}
+
 // Header names used by Fincra.
 const (
 	HeaderAPIKey     = "api-key"

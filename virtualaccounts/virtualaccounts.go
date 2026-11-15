@@ -8,17 +8,11 @@ import (
 	"github.com/1Btln/fincra-go/internal/api"
 )
 
-// backend is the subset of the Fincra client this package needs.
-type backend interface {
-	api.HTTPClient
-	BusinessID() string
-}
-
 // Service groups Fincra permanent and temporary virtual-account endpoints.
-type Service struct{ backend backend }
+type Service struct{ backend api.Backend }
 
 // New returns a virtual-account service backed by backend.
-func New(backend backend) *Service { return &Service{backend: backend} }
+func New(backend api.Backend) *Service { return &Service{backend: backend} }
 
 // Request creates a permanent virtual-account request.
 func (s *Service) Request(ctx context.Context, req *Request) (*AccountResponse, error) {

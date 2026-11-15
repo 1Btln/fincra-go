@@ -9,17 +9,11 @@ import (
 	"github.com/1Btln/fincra-go/internal/api"
 )
 
-// backend is the subset of the Fincra client this package needs.
-type backend interface {
-	api.HTTPClient
-	BusinessID() string
-}
-
 // Service groups Fincra direct-charge endpoints.
-type Service struct{ backend backend }
+type Service struct{ backend api.Backend }
 
 // New returns a direct-charge service backed by backend.
-func New(backend backend) *Service { return &Service{backend: backend} }
+func New(backend api.Backend) *Service { return &Service{backend: backend} }
 
 // Initiate starts a card, bank-transfer, mobile-money, EFT, or PayAttitude charge.
 func (s *Service) Initiate(ctx context.Context, req *InitiateRequest) (*ChargeResponse, error) {
